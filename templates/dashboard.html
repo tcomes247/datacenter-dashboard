@@ -91,6 +91,8 @@
       justify-content: center;
       align-items: center;
       gap: 0.4rem;
+      text-align: center;
+      flex-wrap: wrap;
     }
 
     .incident img {
@@ -109,7 +111,7 @@
 <body>
   <header>
     <h1>🌐 Datacenter Status Dashboard</h1>
-    <p id="refresh-text">Automatically refreshes every 120 seconds</p>
+    <p id="refresh-text">Automatically refreshing every 120 seconds</p>
   </header>
 
   <div class="grid-container" id="statusGrid">
@@ -117,7 +119,7 @@
   </div>
 
   <footer>
-    &copy; <span id="year"></span> Datacenter Monitoring System - InternetPort Sweden AB.
+    &copy; <span id="year"></span> Datacenter Monitoring System
   </footer>
 
   <script>
@@ -134,25 +136,31 @@
           const card = document.createElement('div');
           card.className = 'card';
 
-          // Determine icon and color
-          let iconPath = '/static/Incident.png';
-          if (status.toLowerCase() === 'up') iconPath = '/static/Up.png';
-          else if (status.toLowerCase() === 'down') iconPath = '/static/Down.png';
+          // Determine main status icon
+          let statusIcon = '/static/Incident.png';
+          if (status.toLowerCase() === 'up') statusIcon = '/static/Up.png';
+          else if (status.toLowerCase() === 'down') statusIcon = '/static/Down.png';
 
           const statusClass =
             status.toLowerCase() === 'up' ? 'up' :
             status.toLowerCase() === 'down' ? 'down' :
             'unknown';
 
+          // Incident text — shown with the Incident icon only if there's content
+          const incidentHTML = subject && subject.trim() !== ''
+            ? `<div class="incident">
+                <img src="/static/Incident.png" alt="Incident" />
+                <span>${subject}</span>
+              </div>`
+            : '';
+
           card.innerHTML = `
             <div class="provider-name">${provider}</div>
-            <img src="${iconPath}" alt="${status}" class="status-icon" />
+            <img src="${statusIcon}" alt="${status}" class="status-icon" />
             <div class="status-text ${statusClass}">${status}</div>
-            <div class="incident">
-              <img src="/static/Incident.png" alt="Incident icon" />
-              <span>${subject || 'No recent incidents'}</span>
-            </div>
+            ${incidentHTML}
           `;
+
           grid.appendChild(card);
         });
       } catch (err) {
@@ -164,7 +172,7 @@
     fetchStatus();
     setInterval(fetchStatus, REFRESH_INTERVAL);
 
-    // Dynamic year in footer
+    // Dynamic year
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
