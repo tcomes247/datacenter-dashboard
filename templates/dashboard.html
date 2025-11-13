@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network Status Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #edeceb;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background-color: #2c3e50;
+      color: #ecf0f1;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    header p {
+      margin: 0.25rem 0 0;
+      font-size: 0.9rem;
+      color: #bdc3c7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .status {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .up {
+      background-color: #2ecc71;
+    }
+
+    .down {
+      background-color: #e74c3c;
+    }
+
+    .unknown {
+      background-color: #f1c40f;
+      color: #fff;
+    }
+
+    .incident {
+      font-family: Georgia, serif;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    footer {
+      text-align: center;
+      margin: 2rem 0;
+      color: #777;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌐 Network Status Dashboard</h1>
+    <p id="refresh-text">Automatically refreshes in 120 seconds</p>
+  </header>
+
+  <div class="grid" id="dashboard">
+    <p>Loading...</p>
+  </div>
+
+  <footer>
+    &copy; 2025 Datacenter Monitoring System - InternetPort AB
+  </footer>
+
+  <script>
+    const REFRESH_INTERVAL = 120000; // 120 seconds
+    const dashboard = document.getElementById('dashboard');
+
+    async function fetchStatus() {
+      try {
+        const response = await fetch('/status');
+        const data = await response.json();
+
+        dashboard.innerHTML = ''; // clear old cards
+
+        data.incidents.forEach(([provider, status, subject]) => {
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          // status circle color + icon
+          let statusClass = 'unknown';
+          let statusIcon = '⚠️';
+          if (status.toLowerCase() === 'up') {
+            statusClass = 'up';
+            statusIcon = '✅';
+          } else if (status.toLowerCase() === 'down') {
+            statusClass = 'down';
+            statusIcon = '❌';
+          }
+
+          card.innerHTML = `
+            <h2>${provider}</h2>
+            <div class="status ${statusClass}">${statusIcon}</div>
+            <div class="incident">${subject || 'No incidents'}</div>
+          `;
+
+          dashboard.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Error fetching status:', err);
+        dashboard.innerHTML = '<p style="color:red;">Failed to load data</p>';
+      }
+    }
+
+    fetchStatus();
+    setInterval(fetchStatus, REFRESH_INTERVAL);
+  </script>
+</body>
+</html>
